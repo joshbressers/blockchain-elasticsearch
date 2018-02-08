@@ -10,19 +10,18 @@ from threading import Thread
 
 def worker():
     while True:
-        i = q.get()
+        i = block_q.get()
         try:
             print("%d/%d"%(i['height'], height))
             es.update(id=block_data['hash'], index="btc-test", doc_type='doc', body={'doc' :block_data, 'doc_as_upsert': True})
-            # Get out of the while True block
         except:
             # Something went wrong, put it back in the queue
-            q.put(i)
+            block_q.put(i)
 
 rpc_connection = AuthServiceProxy("http://test:test@127.0.0.1:8332")
 es = Elasticsearch(['http://elastic:password@localhost:9200'])
 
-q = Queue()
+block_q = Queue()
 
 height = rpc_connection.getblockcount()
 print(height)
@@ -36,9 +35,9 @@ for i in range(0, height):
     block = rpc_connection.getblockhash(i)
     block_data = rpc_connection.getblock(block)
     block_data['transactions'] = len(block_data['tx'])
-    q.put(block_data)
+    block_q.put(block_data)
 
-q.join()
+block_q.join()
 
 # Save this for later
 #print("---")
