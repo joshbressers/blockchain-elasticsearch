@@ -1,0 +1,116 @@
+{
+  "btc-test": {
+    "mappings": {
+      "doc": {
+        "properties": {
+          "bits": {
+            "type": "text",
+            "fields": {
+              "keyword": {
+                "type": "keyword",
+                "ignore_above": 256
+              }
+            }
+          },
+          "chainwork": {
+            "type": "text",
+            "fields": {
+              "keyword": {
+                "type": "keyword",
+                "ignore_above": 256
+              }
+            }
+          },
+          "confirmations": {
+            "type": "long"
+          },
+          "difficulty": {
+            "type": "long"
+          },
+          "hash": {
+            "type": "text",
+            "fields": {
+              "keyword": {
+                "type": "keyword",
+                "ignore_above": 256
+              }
+            }
+          },
+          "height": {
+            "type": "long"
+          },
+          "mediantime": {
+            "type": "long"
+          },
+          "merkleroot": {
+            "type": "text",
+            "fields": {
+              "keyword": {
+                "type": "keyword",
+                "ignore_above": 256
+              }
+            }
+          },
+          "nextblockhash": {
+            "type": "text",
+            "fields": {
+              "keyword": {
+                "type": "keyword",
+                "ignore_above": 256
+              }
+            }
+          },
+          "nonce": {
+            "type": "long"
+          },
+          "previousblockhash": {
+            "type": "text",
+            "fields": {
+              "keyword": {
+                "type": "keyword",
+                "ignore_above": 256
+              }
+            }
+          },
+          "size": {
+            "type": "long"
+          },
+          "strippedsize": {
+            "type": "long"
+          },
+          "time": {
+            "type": "date",
+            "format": "epoch_second"
+          },
+          "transactions": {
+            "type": "long"
+          },
+          "tx": {
+            "type": "text",
+            "fields": {
+              "keyword": {
+                "type": "keyword",
+                "ignore_above": 256
+              }
+            }
+          },
+          "version": {
+            "type": "long"
+          },
+          "versionHex": {
+            "type": "text",
+            "fields": {
+              "keyword": {
+                "type": "keyword",
+                "ignore_above": 256
+              }
+            }
+          },
+          "weight": {
+            "type": "long"
+          }
+        }
+      }
+    }
+  }
+}
