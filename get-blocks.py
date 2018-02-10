@@ -4,9 +4,6 @@ from bitcoinrpc.authproxy import AuthServiceProxy, JSONRPCException
 from elasticsearch import Elasticsearch
 from elasticsearch.exceptions import NotFoundError
 from elasticsearch.exceptions import ConnectionTimeout
-import json
-import ast
-import time
 import sys
 from Queue import Queue
 from threading import Thread
