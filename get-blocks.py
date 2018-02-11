@@ -16,7 +16,6 @@ def block_worker():
             try:
                 es.get(index="btc-blocks", doc_type="doc", id=i['hash'])
                 # It exists if this returns, let's skip it
-                fails = 0
             except NotFoundError:
                 # We need to add this block
                 es.update(id=i['hash'], index="btc-blocks", doc_type='doc',
