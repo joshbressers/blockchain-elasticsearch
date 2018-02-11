@@ -22,7 +22,7 @@ def block_worker():
                 es.update(id=i['hash'], index="btc-blocks", doc_type='doc',
 body={'doc' :i, 'doc_as_upsert': True}, request_timeout=30)
         except KeyboardInterrupt as e:
-            sys.exit(0)
+            sys.exit(1)
 
         except ConnectionTimeout:
             # Something went wrong, put it back in the queue
@@ -38,7 +38,7 @@ def count_worker():
             block_data['transactions'] = len(block_data['tx'])
             block_q.put(block_data)
         except KeyboardInterrupt as e:
-            sys.exit(0)
+            sys.exit(1)
             # Something went wrong, put it back in the queue
             #count_q.put(i)
 
