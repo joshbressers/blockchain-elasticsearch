@@ -33,7 +33,7 @@ body={'doc' :i, 'doc_as_upsert': True}, request_timeout=30)
 rpc_connection = AuthServiceProxy("http://test:test@127.0.0.1:8332")
 es = Elasticsearch(['http://elastic:password@localhost:9200'])
 
-block_q = Queue()
+block_q = Queue(maxsize=1000)
 count_q = Queue()
 
 height = rpc_connection.getblockcount()
