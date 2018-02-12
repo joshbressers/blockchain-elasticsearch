@@ -14,12 +14,13 @@ def block_worker():
         try:
             i = block_q.get()
             print("block %d/%d"%(i['height'], height))
+            the_index = "btc-blocks-%d" % (i['height'] / 100000)
             try:
-                es.get(index="btc-blocks", doc_type="doc", id=i['hash'])
+                es.get(index=the_index, doc_type="doc", id=i['hash'])
                 # It exists if this returns, let's skip it
             except NotFoundError:
                 # We need to add this block
-                es.update(id=i['hash'], index="btc-blocks", doc_type='doc',
+                es.update(id=i['hash'], index=the_index, doc_type='doc',
 body={'doc' :i, 'doc_as_upsert': True}, request_timeout=30)
         except KeyboardInterrupt as e:
             sys.exit(1)
@@ -37,7 +38,7 @@ count_q = Queue()
 
 height = rpc_connection.getblockcount()
 
-for i in range(10):
+for i in range(5):
     t = Thread(target=block_worker)
     t.daemon = True
     t.start()
@@ -58,6 +59,9 @@ while not count_q.empty():
         block_data = rpc_connection.getblock(block)
         block_data['transactions'] = len(block_data['tx'])
         block_q.put(block_data)
+    except socket.timeout:
+        # Put the count back in the queue
+        count_q.put(i)
     except:
         # We need to catch certain exceptions
         # probably
