@@ -1,14 +1,17 @@
+PUT _template/btc-template
 {
-  "btc-test": {
-    "mappings": {
+  "index_patterns" : ["btc-blocks-*"],
+  "settings" : {
+        "number_of_shards" : 3
+    },
+      "mappings": {
       "doc": {
         "properties": {
           "bits": {
             "type": "text",
             "fields": {
               "keyword": {
-                "type": "keyword",
-                "ignore_above": 256
+                "type": "keyword"
               }
             }
           },
@@ -16,8 +19,7 @@
             "type": "text",
             "fields": {
               "keyword": {
-                "type": "keyword",
-                "ignore_above": 256
+                "type": "keyword"
               }
             }
           },
@@ -31,8 +33,7 @@
             "type": "text",
             "fields": {
               "keyword": {
-                "type": "keyword",
-                "ignore_above": 256
+                "type": "keyword"
               }
             }
           },
@@ -46,8 +47,7 @@
             "type": "text",
             "fields": {
               "keyword": {
-                "type": "keyword",
-                "ignore_above": 256
+                "type": "keyword"
               }
             }
           },
@@ -55,8 +55,7 @@
             "type": "text",
             "fields": {
               "keyword": {
-                "type": "keyword",
-                "ignore_above": 256
+                "type": "keyword"
               }
             }
           },
@@ -67,8 +66,7 @@
             "type": "text",
             "fields": {
               "keyword": {
-                "type": "keyword",
-                "ignore_above": 256
+                "type": "keyword"
               }
             }
           },
@@ -89,8 +87,7 @@
             "type": "text",
             "fields": {
               "keyword": {
-                "type": "keyword",
-                "ignore_above": 256
+                "type": "keyword"
               }
             }
           },
@@ -101,8 +98,7 @@
             "type": "text",
             "fields": {
               "keyword": {
-                "type": "keyword",
-                "ignore_above": 256
+                "type": "keyword"
               }
             }
           },
@@ -113,4 +109,3 @@
       }
     }
   }
-}
