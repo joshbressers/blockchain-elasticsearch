@@ -109,3 +109,18 @@ PUT _template/btc-template
       }
     }
   }
+
+
+  POST _reindex
+{
+  "source": {
+    "index": "btc-blocks-*"
+  },
+  "dest": {
+    "index": "blocks"
+  }
+}
+
+GET _tasks?detailed=true&actions=*reindex
+
+
