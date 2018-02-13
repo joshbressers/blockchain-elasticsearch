@@ -6,15 +6,17 @@ from elasticsearch.exceptions import NotFoundError
 from elasticsearch.exceptions import ConnectionTimeout
 import sys
 import socket
+import time
 from Queue import Queue
+from Queue import Empty
 from threading import Thread
 
 def block_worker():
     while True:
         try:
-            i = block_q.get()
+            i = block_q.get(timeout=10)
             print("block %d/%d"%(i['height'], height))
-            the_index = "btc-blocks-%d" % (i['height'] / 100000)
+            the_index = "btc-blocks-%d" % (i['height'] / 10000)
             try:
                 es.get(index=the_index, doc_type="doc", id=i['hash'])
                 # It exists if this returns, let's skip it
@@ -24,6 +26,10 @@ def block_worker():
 body={'doc' :i, 'doc_as_upsert': True}, request_timeout=30)
         except KeyboardInterrupt as e:
             sys.exit(1)
+
+        except Empty:
+            # We're done here
+            return
 
         except socket.timeout:
             # Something went wrong, put it back in the queue
@@ -47,7 +53,7 @@ size = 0
 if len(sys.argv) > 1:
     size = int(sys.argv[1])
 
-for i in range(size, height):
+for i in range(size, height + 1):
     count_q.put(i)
 
 # Don't try to thread this, bad things happen if we hit the bitcoin server
@@ -67,7 +73,8 @@ while not count_q.empty():
         # probably
         raise
 
-block_q.join()
+while not block_q.empty():
+    time.sleep(2)
 
 # Save this for later
 #print("---")
