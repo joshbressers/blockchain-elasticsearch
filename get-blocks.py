@@ -16,7 +16,7 @@ def block_worker():
         try:
             i = block_q.get(timeout=10)
             print("block %d/%d"%(i['height'], height))
-            the_index = "btc-blocks-%d" % (i['height'] / 10000)
+            the_index = "btc-blocks-%d" % (i['height'] / 100000)
             try:
                 es.get(index=the_index, doc_type="doc", id=i['hash'])
                 # It exists if this returns, let's skip it
@@ -64,6 +64,7 @@ while not count_q.empty():
         block = rpc_connection.getblockhash(i)
         block_data = rpc_connection.getblock(block)
         block_data['transactions'] = len(block_data['tx'])
+        del(block_data['tx'])
         block_q.put(block_data)
     except socket.timeout:
         # Put the count back in the queue
