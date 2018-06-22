@@ -24,6 +24,7 @@ def block_worker():
                 # We need to add this block
                 es.update(id=i['hash'], index=the_index, doc_type='doc',
 body={'doc' :i, 'doc_as_upsert': True}, request_timeout=30)
+
         except KeyboardInterrupt as e:
             sys.exit(1)
 

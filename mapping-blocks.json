@@ -1,0 +1,286 @@
+{
+  "index_patterns" : ["btc-blocks-*"],
+  "settings" : {
+        "number_of_shards" : 3
+  },
+    "mappings": {
+      "doc": {
+        "properties": {
+          "bits": {
+            "type": "text",
+            "fields": {
+              "keyword": {
+                "type": "keyword"
+              }
+            }
+          },
+          "chainwork": {
+            "type": "text",
+            "fields": {
+              "keyword": {
+                "type": "keyword"
+              }
+            }
+          },
+          "confirmations": {
+            "type": "long"
+          },
+          "difficulty": {
+            "type": "long"
+          },
+          "hash": {
+            "type": "text",
+            "fields": {
+              "keyword": {
+                "type": "keyword"
+              }
+            }
+          },
+          "height": {
+            "type": "long"
+          },
+          "mediantime": {
+            "type": "long"
+          },
+          "merkleroot": {
+            "type": "text",
+            "fields": {
+              "keyword": {
+                "type": "keyword"
+              }
+            }
+          },
+          "nextblockhash": {
+            "type": "text",
+            "fields": {
+              "keyword": {
+                "type": "keyword"
+              }
+            }
+          },
+          "nonce": {
+            "type": "long"
+          },
+          "previousblockhash": {
+            "type": "text",
+            "fields": {
+              "keyword": {
+                "type": "keyword"
+              }
+            }
+          },
+          "size": {
+            "type": "long"
+          },
+          "strippedsize": {
+            "type": "long"
+          },
+          "time": {
+            "type": "date",
+            "format": "epoch_second"
+          },
+          "transactions": {
+            "type": "long"
+          },
+          "tx": {
+            "type": "text",
+            "fields": {
+              "keyword": {
+                "type": "keyword"
+              }
+            }
+          },
+          "version": {
+            "type": "long"
+          },
+          "versionHex": {
+            "type": "text",
+            "fields": {
+              "keyword": {
+                "type": "keyword"
+              }
+            }
+          },
+          "weight": {
+            "type": "long"
+          }
+        }
+      }
+    }
+  }
+
+
+  POST _reindex
+{
+  "source": {
+    "index": "btc-blocks-*"
+  },
+  "dest": {
+    "index": "blocks"
+  }
+}
+
+GET _tasks?detailed=true&actions=*reindex
+
+PUT _template/btc-transactions-template
+{
+    "index_patterns" : ["btc-transactions-*", "transactions"],
+  "settings" : {
+        "number_of_shards" : 5
+    },
+      "mappings": {
+      "doc": {
+        "properties": {
+          "block": {
+            "type": "text",
+            "fields": {
+              "keyword": {
+                "type": "keyword",
+                "ignore_above": 256
+              }
+            }
+          },
+          "hash": {
+            "type": "text",
+            "fields": {
+              "keyword": {
+                "type": "keyword",
+                "ignore_above": 256
+              }
+            }
+          },
+          "height": {
+            "type": "long"
+          },
+          "locktime": {
+            "type": "long"
+          },
+          "size": {
+            "type": "long"
+          },
+          "time": {
+            "type": "date",
+            "format": "epoch_second"
+          },
+          "txid": {
+            "type": "text",
+            "fields": {
+              "keyword": {
+                "type": "keyword",
+                "ignore_above": 256
+              }
+            }
+          },
+          "version": {
+            "type": "long"
+          },
+          "vin": {
+            "properties": {
+              "coinbase": {
+                "type": "text",
+                "fields": {
+                  "keyword": {
+                    "type": "keyword",
+                    "ignore_above": 256
+                  }
+                }
+              },
+              "scriptSig": {
+                "properties": {
+                  "asm": {
+                    "type": "text",
+                    "fields": {
+                      "keyword": {
+                        "type": "keyword",
+                        "ignore_above": 256
+                      }
+                    }
+                  },
+                  "hex": {
+                    "type": "text",
+                    "fields": {
+                      "keyword": {
+                        "type": "keyword",
+                        "ignore_above": 256
+                      }
+                    }
+                  }
+                }
+              },
+              "sequence": {
+                "type": "long"
+              },
+              "txid": {
+                "type": "text",
+                "fields": {
+                  "keyword": {
+                    "type": "keyword",
+                    "ignore_above": 256
+                  }
+                }
+              },
+              "vout": {
+                "type": "long"
+              }
+            }
+          },
+          "vout": {
+            "properties": {
+              "n": {
+                "type": "long"
+              },
+              "scriptPubKey": {
+                "properties": {
+                  "addresses": {
+                    "type": "text",
+                    "fields": {
+                      "keyword": {
+                        "type": "keyword",
+                        "ignore_above": 256
+                      }
+                    }
+                  },
+                  "asm": {
+                    "type": "text",
+                    "fields": {
+                      "keyword": {
+                        "type": "keyword",
+                        "ignore_above": 256
+                      }
+                    }
+                  },
+                  "hex": {
+                    "type": "text",
+                    "fields": {
+                      "keyword": {
+                        "type": "keyword",
+                        "ignore_above": 256
+                      }
+                    }
+                  },
+                  "reqSigs": {
+                    "type": "long"
+                  },
+                  "type": {
+                    "type": "text",
+                    "fields": {
+                      "keyword": {
+                        "type": "keyword",
+                        "ignore_above": 256
+                      }
+                    }
+                  }
+                }
+              },
+              "value": {
+                "type": "float"
+              }
+            }
+          },
+          "vsize": {
+            "type": "long"
+          }
+        }
+      }
+    }
+  }
