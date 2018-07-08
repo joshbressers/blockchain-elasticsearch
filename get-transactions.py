@@ -38,14 +38,16 @@ def block_worker():
 
 
 rpc_connection = AuthServiceProxy("http://test:test@127.0.0.1:8332")
-es = Elasticsearch(['http://elastic:password@localhost:9200'])
+#es = Elasticsearch(['http://elastic:password@localhost:9200'])
+es = Elasticsearch(['https://elastic:L1dlgKQJKVySKGsUe8BHqkaj@a00b3a264d104fc2ae01d6682729be83.us-east-1.aws.found.io:9243/'])
+
 
 tx_q = Queue(maxsize=1000)
 count_q = Queue()
 
 height = rpc_connection.getblockcount()
 
-for i in range(5):
+for i in range(15):
     t = Thread(target=block_worker)
     t.daemon = True
     t.start()
