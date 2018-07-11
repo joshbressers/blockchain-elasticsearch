@@ -7,24 +7,28 @@ from elasticsearch.exceptions import ConnectionTimeout
 import sys
 import socket
 import time
-from Queue import Queue
-from Queue import Empty
+from queue import Queue
+from queue import Empty
 from threading import Thread
 
 def block_worker():
     while True:
         try:
             i = tx_q.get(timeout=10)
-            print("block %d/%d"%(i['height'], height))
+            #print("block %d/%d"%(i['height'], height))
             the_index = "btc-transactions-%d" % (i['height'] / 100000)
-            try:
-                es.get(index=the_index, doc_type="doc", id=dtx['hash'])
-                # It exists if this returns, let's skip it
-            except NotFoundError:
-                # We need to add this transaction
-                es.update(id=dtx['hash'], index=the_index, doc_type='doc',
-                    body={'doc' :dtx, 'doc_as_upsert': True},
-                    request_timeout=30)
+            es.update(id=i['hash'], index=the_index, doc_type='doc',
+                body={'doc' :i, 'doc_as_upsert': True},
+                request_timeout=30)
+            #try:
+            #    es.get(index=the_index, doc_type="doc", id=i['hash'])
+            #    # It exists if this returns, let's skip it
+            #except NotFoundError:
+            #    # We need to add this transaction
+            #    print(i['hash'])
+            #    es.update(id=i['hash'], index=the_index, doc_type='doc',
+            #        body={'doc' :i, 'doc_as_upsert': True},
+            #        request_timeout=30)
         except KeyboardInterrupt as e:
             sys.exit(1)
 

@@ -4,8 +4,6 @@ from bitcoinrpc.authproxy import AuthServiceProxy, JSONRPCException
 import sys
 import socket
 import time
-from Queue import Queue
-from Queue import Empty
 from threading import Thread
 import simplejson as json
 import sys

@@ -7,8 +7,8 @@ from elasticsearch.exceptions import ConnectionTimeout
 import sys
 import socket
 import time
-from Queue import Queue
-from Queue import Empty
+from queue import Queue
+from queue import Empty
 from threading import Thread
 
 def block_worker():
@@ -22,8 +22,7 @@ def block_worker():
                 # It exists if this returns, let's skip it
             except NotFoundError:
                 # We need to add this block
-                es.update(id=i['hash'], index=the_index, doc_type='doc',
-body={'doc' :i, 'doc_as_upsert': True}, request_timeout=30)
+                es.update(id=i['hash'], index=the_index, doc_type='doc', body={'doc' :i, 'doc_as_upsert': True}, request_timeout=30)
 
         except KeyboardInterrupt as e:
             sys.exit(1)
@@ -54,6 +53,11 @@ for i in range(10):
 size = 0
 if len(sys.argv) > 1:
     size = int(sys.argv[1])
+
+if size == -1:
+    query = {'sort': [{'height': 'desc'}], 'size': 1, 'query': {'match_all': {}}, '_source': ['height']}
+    res = es.search(index="btc-blocks-*", body=query)
+    size = res['hits']['hits'][0]['_source']['height']
 
 for i in range(size, height + 1):
     count_q.put(i)
