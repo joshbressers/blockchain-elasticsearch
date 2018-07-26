@@ -6,12 +6,17 @@ import elasticsearch
 import elasticsearch.helpers
 from bitcoinrpc.authproxy import AuthServiceProxy, JSONRPCException
 
+import os
+
 class ElasticsearchBTC:
     "Class for querying the Elasticsearch BTC instance"
 
-    def __init__(self, url):
+    def __init__(self, url=None):
 
-        self.url = url
+        if url is None:
+            self.url = os.environ['ESURL']
+        else:
+            self.url = url
         self.es = Elasticsearch([self.url])
         self.size = None
 

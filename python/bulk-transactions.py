@@ -8,7 +8,7 @@ from esbtc import DaemonBTC
 
 
 rpc = DaemonBTC("http://test:test@127.0.0.1:8332")
-es = ElasticsearchBTC('https://elastic:L1dlgKQJKVySKGsUe8BHqkaj@a00b3a264d104fc2ae01d6682729be83.us-east-1.aws.found.io:9243/')
+es = ElasticsearchBTC()
 
 height = rpc.get_max_block()
 
