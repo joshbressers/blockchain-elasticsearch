@@ -87,14 +87,14 @@ class DaemonBTC:
 
         transactions = []
 
-        for tx in block_data['tx']:
-            # Load the transaction
-            rtx = self.rpc.getrawtransaction(tx)
-            dtx  = self.rpc.decoderawtransaction(rtx)
-            dtx['height'] = block_data['height']
-            dtx['block'] = block_data['hash']
-            dtx['time'] = block_data['time']
-            transactions.append(dtx)
+        rtx = self.rpc.batch_([["getrawtransaction", t] for t in block_data['tx']])
+        dtx = self.rpc.batch_([["decoderawtransaction", t] for t in rtx])
+
+        for tx in dtx:
+            tx['height'] = block_data['height']
+            tx['block'] = block_data['hash']
+            tx['time'] = block_data['time']
+            transactions.append(tx)
 
         return transactions
 
