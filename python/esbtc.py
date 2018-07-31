@@ -94,6 +94,10 @@ class DaemonBTC:
             tx['height'] = block_data['height']
             tx['block'] = block_data['hash']
             tx['time'] = block_data['time']
+            for i in tx['vin']:
+                if 'scriptSig' in i:
+                    # We can't use this data, let's get rid of it
+                    del(i['scriptSig'])
             transactions.append(tx)
 
         return transactions
