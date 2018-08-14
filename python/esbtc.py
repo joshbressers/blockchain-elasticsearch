@@ -17,8 +17,88 @@ class ElasticsearchBTC:
             self.url = os.environ['ESURL']
         else:
             self.url = url
-        self.es = Elasticsearch([self.url])
+        self.es = Elasticsearch([self.url], http_compress = True)
         self.size = None
+
+    def get_block(self, block=None, height=None):
+        result = {}
+        if block:
+            result = self.es.search(index="btc-blocks-*", body={"query": { "match": { "_id": block }}})
+        elif height:
+            result = self.es.search(index="btc-blocks-*", body={"query": { "match": { "height": height }}})
+
+        # We're just going to assume neither of these can return
+        # multiple things
+        if len(result['hits']['hits']) == 0:
+            return None
+        else:
+            return result['hits']['hits'][0]['_source']
+
+    def get_block_transactions(self, block):
+            result = self.es.search(index="btc-transactions-*", body={"query": { "match": { "block": block }}})
+
+            txs = []
+            for i in result['hits']['hits']:
+                txs.append(i['_source'])
+            return txs
+
+    def get_nonstandard_transactions(self):
+            query = { "_source": ["hash", "vout.scriptPubKey.hex", "vout.scriptPubKey.type"], "query" : { "match": { "vout.scriptPubKey.type": "nonstandard" } } }
+
+            return elasticsearch.helpers.scan(self.es, index="btc-transactions-*", query=query, scroll='1m')
+
+    def get_nulldata_transactions(self, index, height_range):
+            # This is a mess. Apologies if you're looking at this
+
+            l = height_range[0]
+            h = height_range[1]
+            query = { "_source": ["hash",
+                                  "height",
+                                  "vin.txid",
+                                  "vout.scriptPubKey.asm",
+                                  "vout.scriptPubKey.type",
+                                  "vout.n"
+                                 ],
+                      "query" : {
+                        "bool": {
+                          "must": [
+                            {"term": { "vout.scriptPubKey.type": "nulldata" }},
+                            {"range" : { "height" : { "gte" : l, "lte" :  h}}}
+                          ]
+                        }
+                      }
+                    }
+
+            return elasticsearch.helpers.scan(self.es, index=index, query=query, scroll='5m')
+
+    def get_opreturn_data(self):
+
+            query = { "_source": ["tx",
+                                  "n",
+                                  "vin.txid",
+                                 ],
+                      "query" : {
+                        "match_all" : {}
+                      }
+                    }
+
+            return elasticsearch.helpers.scan(self.es, index="btc-opreturn", query=query, scroll='5m')
+
+    def update_opreturns(self, the_iter):
+
+        errors = []
+
+        for ok, item in elasticsearch.helpers.streaming_bulk(self.es, the_iter, max_retries=2):
+            if not ok:
+                errors.append(item)
+
+        return errors
+
+    def add_opreturn(self, data):
+
+            my_id = "%s-%s" % (data['tx'], data['n'])
+
+            self.es.update(id=my_id, index="btc-opreturn", doc_type='doc', body={'doc' :data, 'doc_as_upsert': True}, request_timeout=30)
 
     def add_block(self, block):
         "Add a block. Do nothing if the block already exists"
@@ -131,6 +211,46 @@ class Transactions:
                 }
 
         self.transactions.append(temp)
+
+
+    def __next__(self):
+        "handle a call to next()"
+
+        self.current = self.current + 1
+        if self.current >= len(self.transactions):
+            raise StopIteration
+
+        return self.transactions[self.current]
+
+    def __iter__(self):
+        "Just return ourself"
+        return self
+
+    def __len__(self):
+        return len(self.transactions)
+
+class OP_RETURN:
+
+    def __init__(self, es):
+        self.transactions = []
+        self.current = -1
+        self.es_handle = es
+
+    def add_transaction(self, tx):
+        temp = {    '_type': 'doc',
+                    '_op_type': 'update',
+                    '_index': "btc-opreturn",
+                    '_id': "%s-%s" % (tx['tx'], tx['n']),
+                    'doc_as_upsert': True,
+                    'doc': tx
+                }
+
+        self.transactions.append(temp)
+
+        if len(self.transactions) > 1000:
+            self.es_handle.add_bulk_tx(self)
+            self.transactions = []
+            self.current = -1
 
 
     def __next__(self):

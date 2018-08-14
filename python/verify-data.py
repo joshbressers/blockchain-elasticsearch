@@ -23,12 +23,11 @@ if size == -1:
     size = es.get_max_block() + 1
 
 for i in range(size, height + 1):
-        block = btcdaemon.get_block(i)
+        block = es.get_block(height=i)
         print("block %d/%d"%(block['height'], height))
-        es.add_block(block)
 
-        # Add transactions
-        txs = btcdaemon.get_block_transactions_bulk(i)
-        print("  Transactions: %i" % len(txs))
-        errors = es.add_bulk_tx(txs)
-        print("  %i errors" %  len(errors))
+        txs = es.get_block_transactions(block['hash'])
+        if block['transactions'] == len(txs):
+            print(" OK")
+        else:
+            print("***BAD***")
