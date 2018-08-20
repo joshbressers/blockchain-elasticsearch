@@ -12,7 +12,7 @@ es = ElasticsearchBTC()
 
 height = btcdaemon.get_max_block()
 
-size = 0
+size = 1
 if len(sys.argv) > 1:
     size = int(sys.argv[1])
 
@@ -24,10 +24,14 @@ if size == -1:
 
 for i in range(size, height + 1):
         block = es.get_block(height=i)
-        print("block %d/%d"%(block['height'], height))
-
         txs = es.get_block_transactions(block['hash'])
         if block['transactions'] == len(txs):
-            print(" OK")
+            pass
         else:
-            print("***BAD***")
+            print("Bad block %d/%d"%(block['height'], height))
+
+            # Add transactions
+            txs = btcdaemon.get_block_transactions_bulk(i)
+            print("  Transactions: %i" % len(txs))
+            errors = es.add_bulk_tx(txs)
+            print("  %i errors" %  len(errors))

@@ -34,6 +34,50 @@ class ElasticsearchBTC:
         else:
             return result['hits']['hits'][0]['_source']
 
+    def get_transactions(self, tx):
+
+        unsorted = {}
+
+        # Use batches of 20
+        for batch_range in range(0, len(tx), 20):
+
+            result = self.es.search(index="btc-transactions-*",
+                                    body={"size": 50,
+                                          "query": {
+                                            "terms": {
+                                              "txid": tx[batch_range:batch_range+20]
+                                            }
+                                          }
+                                         }
+                                   )
+
+            if len(result['hits']['hits']) == 0:
+                return None
+
+            # Collect the results
+            for i in result['hits']['hits']:
+                unsorted[i['_source']['txid']] = i['_source']
+
+        # Return the results in the right order
+        output = []
+        for i in tx:
+            if i in unsorted:
+                output.append(unsorted[i])
+            else:
+                import pdb; pdb.set_trace()
+        return output
+
+    def get_transaction(self, tx):
+
+        result = self.es.search(index="btc-transactions-*", body={"query": { "match": { "txid": tx }}})
+
+        # We're just going to assume neither of these can return
+        # multiple things
+        if len(result['hits']['hits']) == 0:
+            return None
+        else:
+            return result['hits']['hits'][0]['_source']
+
     def get_block_transactions(self, block):
             result = self.es.search(index="btc-transactions-*", body={"query": { "match": { "block": block }}})
 
@@ -54,6 +98,7 @@ class ElasticsearchBTC:
             h = height_range[1]
             query = { "_source": ["hash",
                                   "height",
+                                  "txid",
                                   "vin.txid",
                                   "vout.scriptPubKey.asm",
                                   "vout.scriptPubKey.type",
@@ -75,6 +120,7 @@ class ElasticsearchBTC:
 
             query = { "_source": ["tx",
                                   "n",
+                                  "txid",
                                   "vin.txid",
                                  ],
                       "query" : {

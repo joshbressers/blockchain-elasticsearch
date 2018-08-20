@@ -29,6 +29,12 @@ for index in range(2, 6):
         for i in es.get_nulldata_transactions(idx, [low, high]):
             for tx in i['_source']['vout']:
                 tx_hash = i['_source']['hash']
+                tx_id = i['_source']['txid']
+                #try:
+                #    tx_id = i['_source']['txid']
+                #except KeyError:
+                #    tx_id = tx_hash
+                #    print("KeyError: txid missing %s" % tx_hash)
                 if tx['scriptPubKey']['type'] == "nulldata":
                     asm = tx['scriptPubKey']['asm']
                     if not asm.startswith('OP_RETURN '):
@@ -46,7 +52,7 @@ for index in range(2, 6):
                     try:
                         output = bytes.fromhex(asm)
                     except ValueError:
-                        print("%s:%s" % (tx_hash, asm))
+                        print("ValueError %s:%s" % (tx_hash, asm))
                     size = len(output)
                     tx_num = tx['n']
                     height = i['_source']['height']
@@ -63,6 +69,7 @@ for index in range(2, 6):
                         doc['vin'] = i['_source']['vin']
 
                     doc['tx'] = tx_hash
+                    doc['txid'] = tx_id
                     doc['n'] = tx_num
                     #doc['type'] = filetype
                     doc['size'] = size
