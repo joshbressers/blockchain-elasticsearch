@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 
 import sys
+import os
 import time
 import subprocess
 
@@ -53,6 +54,11 @@ for i in txs:
             pass
 
 for p in parents:
+
+    if os.path.isfile('sorted/%s/%s' % (p[0], p)):
+        print('sorted/%s/%s exists, skipping' % (p[0], p))
+        continue
+
     needed_ids = get_ids(txs, p)
 
     fh = open('sorted/%s/%s' % (p[0], p), 'wb')

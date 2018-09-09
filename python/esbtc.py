@@ -168,6 +168,10 @@ class ElasticsearchBTC:
             # We need to add this transaction
             self.es.update(id=tx['hash'], index=the_index, doc_type='doc', body={'doc' :tx, 'doc_as_upsert': True}, request_timeout=30)
 
+    def add_price(self, date, price):
+        "Add the price for a given timestamp"
+        price_data = { 'date': date, 'price': price }
+        self.es.update(id=date, index="btc-price", doc_type='doc', body={'doc' :price_data, 'doc_as_upsert': True}, request_timeout=30)
 
     def get_max_block(self):
         "Get the largest block in the system"
@@ -206,6 +210,12 @@ class DaemonBTC:
         del(block_data['tx'])
 
         return block_data
+
+    def get_transaction(self, tx):
+        rtx = self.rpc.getrawtransaction(tx)
+        dtx = self.rpc.decoderawtransaction(rtx)
+
+        return dtx
 
     def get_block_transactions(self, block):
         blockhash = self.rpc.getblockhash(block)

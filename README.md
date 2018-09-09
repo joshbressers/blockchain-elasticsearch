@@ -19,3 +19,7 @@ When you run the bitcoin client, use the -txindex option
 `./bitcoin-qt -txindex`
 
 You should be able to just run "get-blocks.py" and wait
+
+You can find some price data here
+https://api.coindesk.com/v1/bpi/historical/close.json?start=2010-07-17&end=2018-09-07
+
