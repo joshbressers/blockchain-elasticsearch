@@ -1,0 +1,19 @@
+{
+  "index_patterns" : ["btc-price"],
+  "settings" : {
+        "number_of_shards" : 3
+  },
+  "mappings": {
+    "doc": {
+      "properties": {
+        "date": {
+            "type": "date",
+            "format": "epoch_second"
+        },
+        "price": {
+          "type": "float"
+        }
+      }
+    }
+  }
+}

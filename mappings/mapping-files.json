@@ -1,0 +1,28 @@
+{
+  "index_patterns" : ["btc-opreturn-file"],
+  "settings" : {
+        "number_of_shards" : 3
+  },
+    "mappings": {
+      "doc": {
+        "properties": {
+          "data": {
+              "type": "text",
+              "fielddata" : "true",
+              "fields": { "keyword": { "type": "keyword" } }
+          },
+          "size": { "type": "long" },
+          "tx": {
+            "type": "text",
+            "fields": { "keyword": { "type": "keyword" } }
+          },
+          "type": {
+            "type": "text",
+            "fields": {
+              "keyword": { "type": "keyword" } }
+          }
+        }
+      }
+    }
+  }
+}

@@ -86,6 +86,11 @@ class ElasticsearchBTC:
                 txs.append(i['_source'])
             return txs
 
+    def get_block_transactions_number(self, block):
+            result = self.es.search(index="btc-transactions-*", body={"query": { "match": { "block": block }}})
+
+            return result['hits']['total']
+
     def get_nonstandard_transactions(self):
             query = { "_source": ["hash", "vout.scriptPubKey.hex", "vout.scriptPubKey.type"], "query" : { "match": { "vout.scriptPubKey.type": "nonstandard" } } }
 
@@ -146,15 +151,20 @@ class ElasticsearchBTC:
 
             self.es.update(id=my_id, index="btc-opreturn", doc_type='doc', body={'doc' :data, 'doc_as_upsert': True}, request_timeout=30)
 
-    def add_block(self, block):
+    def add_block(self, block, force_add=False):
         "Add a block. Do nothing if the block already exists"
 
         the_index = "btc-blocks-%d" % (block['height'] / 100000)
+
+        exists = False
         try:
             self.es.get(index=the_index, doc_type="doc", id=block['hash'])
-            # It exists if this returns, let's skip it
+            exists = True
         except NotFoundError:
             # We need to add this block
+            exists = False
+
+        if exists is False or force_add is True:
             self.es.update(id=block['hash'], index=the_index, doc_type='doc', body={'doc' :block, 'doc_as_upsert': True}, request_timeout=30)
 
     def add_transaction(self, tx):
@@ -172,6 +182,15 @@ class ElasticsearchBTC:
         "Add the price for a given timestamp"
         price_data = { 'date': date, 'price': price }
         self.es.update(id=date, index="btc-price", doc_type='doc', body={'doc' :price_data, 'doc_as_upsert': True}, request_timeout=30)
+
+    def add_opreturn_files(self, data):
+        errors = []
+
+        for ok, item in elasticsearch.helpers.streaming_bulk(self.es, data, max_retries=2):
+            if not ok:
+                errors.append(item)
+
+        return errors
 
     def get_max_block(self):
         "Get the largest block in the system"
@@ -207,6 +226,9 @@ class DaemonBTC:
         block = self.rpc.getblockhash(i)
         block_data = self.rpc.getblock(block)
         block_data['transactions'] = len(block_data['tx'])
+        # Elasticsearch struggles with these as integers
+        #block_data['chainwork_int'] = int(block_data['chainwork'], 16)
+        block_data['difficulty'] = int(block_data['difficulty'])
         del(block_data['tx'])
 
         return block_data
@@ -247,6 +269,21 @@ class DaemonBTC:
             tx.add_transaction(i)
 
         return tx
+
+    def get_blocks_bulk(self, blocks):
+
+        rbh = self.rpc.batch_([["getblockhash", t] for t in blocks])
+
+        dbh = self.rpc.batch_([["get_block", t] for t in rbh])
+
+        output = []
+        for block_data in dbh:
+            block_data['transactions'] = len(block_data['tx'])
+            block_data['chainwork_int'] = int(block_data['chainwork'], 16)
+            del(block_data['tx'])
+            output.append(block_data)
+
+        return output
 
     def get_max_block(self):
         return self.rpc.getblockcount()

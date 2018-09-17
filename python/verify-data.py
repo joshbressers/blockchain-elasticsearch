@@ -24,13 +24,12 @@ if size == -1:
 
 for i in range(size, height + 1):
         block = es.get_block(height=i)
-        txs = es.get_block_transactions(block['hash'])
-        import pdb; pdb.set_trace()
+        txs = es.get_block_transactions_number(block['hash'])
         print("Block %d/%d"%(block['height'], height))
-        if block['transactions'] == len(txs):
+        if block['transactions'] == txs:
             pass
         else:
-            print("***Bad block - got %d expected %d" % (block['transactions'], len(txs)))
+            print("***Bad block - got %d expected %d" % (block['transactions'], txs))
 
             # Add transactions
             txs = btcdaemon.get_block_transactions_bulk(i)
