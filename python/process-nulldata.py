@@ -8,7 +8,6 @@ from esbtc import DaemonBTC
 from esbtc import ElasticsearchBTC
 from esbtc import OP_RETURN
 
-
 es = ElasticsearchBTC()
 txs = OP_RETURN(es)
 
@@ -27,9 +26,17 @@ for index in range(2, 6):
         print(low)
         print(high)
         for i in es.get_nulldata_transactions(idx, [low, high]):
-            for tx in i['_source']['vout']:
-                tx_hash = i['_source']['hash']
-                tx_id = i['_source']['txid']
+
+            # This thing loves to timeout. Rebuilding it every time
+            # isn't ideal, we need to fix it someday
+            btcdaemon = DaemonBTC("http://test:test@127.0.0.1:8332")
+            bttx = btcdaemon.get_transaction(i['_source']['txid'])
+
+            #for tx in i['_source']['vout']:
+            for tx in bttx['vout']:
+                tx_hash = bttx['hash']
+                tx_id = bttx['txid']
+
                 #try:
                 #    tx_id = i['_source']['txid']
                 #except KeyError:
@@ -65,8 +72,8 @@ for index in range(2, 6):
 
                     doc = {}
 
-                    if 'vin' in i['_source']:
-                        doc['vin'] = i['_source']['vin']
+                    if 'vin' in bttx:
+                        doc['vin'] = bttx['vin']
 
                     doc['tx'] = tx_hash
                     doc['txid'] = tx_id
