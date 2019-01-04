@@ -64,7 +64,9 @@ class ElasticsearchBTC:
             if i in unsorted:
                 output.append(unsorted[i])
             else:
-                import pdb; pdb.set_trace()
+                pass
+                # Sometimes crazy things happen
+                #import pdb; pdb.set_trace()
         return output
 
     def get_transaction(self, tx):
@@ -180,8 +182,8 @@ class ElasticsearchBTC:
 
     def add_price(self, date, price):
         "Add the price for a given timestamp"
-        price_data = { 'date': date, 'price': price }
-        self.es.update(id=date, index="btc-price", doc_type='doc', body={'doc' :price_data, 'doc_as_upsert': True}, request_timeout=30)
+        price_data = { 'time': date, 'price': price }
+        self.es.update(id=date, index="btc-price-date", doc_type='doc', body={'doc' :price_data, 'doc_as_upsert': True}, request_timeout=30)
 
     def add_opreturn_files(self, data):
         errors = []
