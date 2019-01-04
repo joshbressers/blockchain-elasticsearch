@@ -5,10 +5,14 @@ import time
 
 from esbtc import DaemonBTC
 from esbtc import ElasticsearchBTC
+import logging
 
 
 btcdaemon = DaemonBTC("http://test:test@127.0.0.1:8332")
 es = ElasticsearchBTC()
+
+tracer = logging.getLogger('elasticsearch')
+tracer.setLevel(logging.CRITICAL)
 
 height = btcdaemon.get_max_block()
 
