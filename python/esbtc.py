@@ -242,6 +242,11 @@ class DaemonBTC:
         return dtx
 
     def get_block_transactions(self, block):
+
+        # The genesis block is special
+        if block == 0:
+            return []
+
         blockhash = self.rpc.getblockhash(block)
         block_data = self.rpc.getblock(blockhash)
 
@@ -254,10 +259,17 @@ class DaemonBTC:
             tx['height'] = block_data['height']
             tx['block'] = block_data['hash']
             tx['time'] = block_data['time']
+
+            # We can't use this data, let's get rid of it
             for i in tx['vin']:
                 if 'scriptSig' in i:
-                    # We can't use this data, let's get rid of it
                     del(i['scriptSig'])
+            for i in tx['vout']:
+                if 'hex' in i['scriptPubKey']:
+                    del(i['scriptPubKey']['hex'])
+                if 'asm' in i['scriptPubKey']:
+                    del(i['scriptPubKey']['asm'])
+
             transactions.append(tx)
 
         return transactions
