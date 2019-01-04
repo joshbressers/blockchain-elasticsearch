@@ -33,7 +33,7 @@ for f in ['a', 'b', 'c', 'd', 'e', 'f', '0', '1', '2', '3', '4', '5', '6', '7', 
                 ascii_count = ascii_count + 1
 
         file_data = ''
-        if (byte_count > 0) and ((ascii_count/byte_count) > 0.8):
+        if (byte_count > 0) and ((ascii_count/byte_count) > 0.7):
             fh.seek(0)
             file_data = str(fh.read(), 'ascii', errors='replace')
 
