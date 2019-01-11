@@ -3,5 +3,5 @@
 while true;
 do
 ./get-blocks.py -1
-sleep 10
+sleep 600
 done
