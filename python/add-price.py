@@ -9,8 +9,11 @@ from esbtc import ElasticsearchBTC
 
 es = ElasticsearchBTC()
 
-q = Request("https://api.coindesk.com/v1/bpi/historical/close.json")
-#q = Request("https://api.coindesk.com/v1/bpi/historical/close.json?start=2010-07-17&end=2018-11-24")
+if len(sys.argv) > 1 and sys.argv[1] == "all":
+    q = Request("https://api.coindesk.com/v1/bpi/historical/close.json?start=2010-07-17&end=%s" % datetime.today().strftime("%Y-%m-%d"))
+else:
+    q = Request("https://api.coindesk.com/v1/bpi/historical/close.json")
+
 q.add_header('User-Agent', 'Mozilla/5.0 (Windows NT 6.1; Win64; x64)')
 data = json.loads(urlopen(q).read().decode('ascii'))
 
