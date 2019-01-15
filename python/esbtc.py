@@ -123,7 +123,7 @@ class ElasticsearchBTC:
 
             return elasticsearch.helpers.scan(self.es, index=index, query=query, scroll='5m')
 
-    def get_opreturn_data(self):
+    def get_opreturn_data(self, bottom = None, top = None):
 
             query = { "_source": ["tx",
                                   "n",
@@ -134,6 +134,9 @@ class ElasticsearchBTC:
                         "match_all" : {}
                       }
                     }
+
+            if bottom is not None and top is not None:
+                query['query'] = {"range" : { "height" : { "gte" : bottom, "lte" :  top}}}
 
             return elasticsearch.helpers.scan(self.es, index="btc-opreturn", query=query, scroll='5m')
 
@@ -238,6 +241,12 @@ class DaemonBTC:
     def get_transaction(self, tx):
         rtx = self.rpc.getrawtransaction(tx)
         dtx = self.rpc.decoderawtransaction(rtx)
+
+        return dtx
+
+    def get_transactions(self, txs):
+        rtx = self.rpc.batch_([["getrawtransaction", t] for t in txs])
+        dtx = self.rpc.batch_([["decoderawtransaction", t] for t in rtx])
 
         return dtx
 

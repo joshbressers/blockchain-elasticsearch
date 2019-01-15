@@ -72,8 +72,15 @@ for index in range(2, 6):
 
                     doc = {}
 
+                    import pdb; pdb.set_trace()
                     if 'vin' in bttx:
                         doc['vin'] = bttx['vin']
+                        # We don't need this data, it just takes up space
+                        for vin in doc['vin']:
+                            del(vin['scriptSig']['asm'])
+                            del(vin['scriptSig']['hex'])
+
+
 
                     doc['tx'] = tx_hash
                     doc['txid'] = tx_id

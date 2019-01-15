@@ -26,9 +26,13 @@ def get_ids(txs, the_id):
 
 es = ElasticsearchBTC()
 
+if len(sys.argv) > 2:
+    lower = int(sys.argv[1])
+    higher = int(sys.argv[2])
+
 txs = {}
 
-for i in es.get_opreturn_data():
+for i in es.get_opreturn_data(lower, higher):
 
     if not (len(txs) % 1000):
         print(len(txs))
@@ -62,7 +66,18 @@ for p in parents:
     needed_ids = get_ids(txs, p)
 
     fh = open('sorted/%s/%s' % (p[0], p), 'wb')
-    tx_data = es.get_transactions(needed_ids)
+
+    # This https connection likes to timeout as sometimes we have LOTS of
+    # waiting. This is an insane hack, but meh
+    for attempt in range(10):
+        try:
+            btcdaemon = DaemonBTC("http://test:test@127.0.0.1:8332")
+            tx_data = btcdaemon.get_transactions(needed_ids)
+        except:
+            next
+        else:
+            break
+
     for t in tx_data:
 
         found = False
@@ -75,6 +90,8 @@ for p in parents:
             if found:
                 next
             if tx['scriptPubKey']['type'] == "nulldata":
+                if 'asm' not in tx['scriptPubKey']:
+                    continue
                 asm = tx['scriptPubKey']['asm']
                 if not asm.startswith('OP_RETURN '):
                     next

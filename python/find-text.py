@@ -44,6 +44,9 @@ for f in ['a', 'b', 'c', 'd', 'e', 'f', '0', '1', '2', '3', '4', '5', '6', '7', 
         filetype = subprocess.check_output(['file', '-b', filename])
         filetype = str(filetype.rstrip(), 'ascii', errors='replace')
 
+        if file_data == '':
+            next
+
         the_data = {"tx": tx_id, "type": filetype, "size": byte_count, "data": file_data}
         temp = {    '_type': 'doc',
                     '_op_type': 'update',
