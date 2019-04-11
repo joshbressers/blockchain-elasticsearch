@@ -31,6 +31,7 @@ if len(sys.argv) > 2:
     higher = int(sys.argv[2])
 
 txs = {}
+height = {}
 
 for i in es.get_opreturn_data(lower, higher):
 
@@ -46,8 +47,9 @@ for i in es.get_opreturn_data(lower, higher):
             txs[vin['txid']] = []
 
         txs[vin['txid']].append(i['_source']['txid'])
+        height[vin['txid']] = i['_source']['height']
 
-# Remove all the children
+# Find all the parent transactions
 parents = set(txs)
 for i in txs:
 
@@ -57,15 +59,23 @@ for i in txs:
         except KeyError:
             pass
 
+total_files = len(parents)
+current_file = 0
 for p in parents:
 
-    if os.path.isfile('sorted/%s/%s' % (p[0], p)):
-        print('sorted/%s/%s exists, skipping' % (p[0], p))
+    print("%d/%d" % (current_file, total_files))
+    current_file = current_file + 1
+
+    if not os.path.isdir('sorted/%s' % height[p]):
+        os.mkdir('sorted/%s' % height[p])
+
+    if os.path.isfile('sorted/%s/%s' % (height[p], p)):
+        print('sorted/%s/%s exists, skipping' % (height[p], p))
         continue
 
     needed_ids = get_ids(txs, p)
 
-    fh = open('sorted/%s/%s' % (p[0], p), 'wb')
+    fh = open('sorted/%s/%s' % (height[p], p), 'wb')
 
     # This https connection likes to timeout as sometimes we have LOTS of
     # waiting. This is an insane hack, but meh

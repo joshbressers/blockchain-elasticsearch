@@ -126,6 +126,7 @@ class ElasticsearchBTC:
     def get_opreturn_data(self, bottom = None, top = None):
 
             query = { "_source": ["tx",
+                                  "height",
                                   "n",
                                   "txid",
                                   "vin.txid",
