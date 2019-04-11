@@ -21,6 +21,9 @@ When you run the bitcoin client, use the -txindex option
 The first time you run this, it's going to take a crazy long time to sync
 the network.
 
+You will need to pip install the certifi, elasticsearch, and
+pythong-bitcoinrpc packages.
+
 You should be able to just run "get-blocks.py" and wait. A long time.
 
 You can find some price data here
@@ -32,9 +35,9 @@ Once you have all the blocks and transactions syncd, first run the
 process-nulldata.py script. It takes time to run. This will build an index
 of all nulldata transactions.
 
-Once that script is done, create a directory named sorted with
-subdirectories a-f and 0-9 in it. Run the link-nulldata.py script to link
-the transactions together that matter and write them out to disk.
+Once that script is done, create a directory named sorted. Run the
+link-nulldata.py script to link the transactions together that matter and
+write them out to disk.
 
 If you want to put ASCII content into elasticsearch for parsing you can use
 the find-text.py script. It needs to be run from inside the sorted
