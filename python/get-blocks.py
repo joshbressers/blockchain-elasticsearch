@@ -3,6 +3,7 @@
 import sys
 import getopt
 import time
+import socket
 
 from esbtc import DaemonBTC
 from esbtc import ElasticsearchBTC
@@ -47,7 +48,12 @@ for i in range(size, height + 1):
 
         if transactions is True:
             # Add transactions
-            txs = btcdaemon.get_block_transactions_bulk(i)
+            while True:
+                try:
+                    txs = btcdaemon.get_block_transactions_bulk(i)
+                    break
+                except socket.timeout:
+                    btcdaemon = DaemonBTC("http://test:test@127.0.0.1:8332")
             print("  Transactions: %i" % len(txs))
             errors = es.add_bulk_tx(txs)
             print("  %i errors" %  len(errors))
