@@ -4,7 +4,6 @@
         "number_of_shards" : 3
   },
   "mappings": {
-    "doc": {
       "properties": {
         "time": {
             "type": "date",
@@ -14,6 +13,5 @@
           "type": "float"
         }
       }
-    }
   }
 }

@@ -4,7 +4,6 @@
         "number_of_shards" : 5
     },
       "mappings": {
-      "doc": {
         "properties": {
           "block": {
             "type": "text",
@@ -157,5 +156,4 @@
           }
         }
       }
-    }
   }

@@ -4,7 +4,6 @@
         "number_of_shards" : 3
   },
     "mappings": {
-      "doc": {
         "properties": {
           "bits": {
             "type": "text",
@@ -282,5 +281,4 @@ PUT _template/btc-transactions-template
           }
         }
       }
-    }
   }
