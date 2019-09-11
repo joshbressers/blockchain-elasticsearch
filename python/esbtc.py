@@ -243,6 +243,21 @@ class DaemonBTC:
         block_data['difficulty'] = int(block_data['difficulty'])
         del(block_data['tx'])
 
+        # Figure out how many coins moved
+        value = 0
+        txs = self.get_block_transactions(i)
+
+        # This is the data we need for value
+        # txs[0]['vout'][0]['value']
+        for tx in txs:
+            for vout in tx['vout']:
+                if vout['scriptPubKey']['type'] == 'nonstandard':
+                    pass
+                else:
+                    value = value + vout['value']
+
+        block_data['value'] = value
+
         return block_data
 
     def get_transaction(self, tx):
