@@ -157,6 +157,9 @@ PUT _template/btc-transactions-template
           "size": {
             "type": "long"
           },
+          "value": {
+            "type": "float"
+          },
           "time": {
             "type": "date",
             "format": "epoch_second"
