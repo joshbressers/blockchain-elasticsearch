@@ -17,7 +17,12 @@ else:
 q.add_header('User-Agent', 'Mozilla/5.0 (Windows NT 6.1; Win64; x64)')
 data = json.loads(urlopen(q).read().decode('ascii'))
 
+total = len(data['bpi'])
+current = 0
+
 for i in data['bpi']:
     date = datetime.strptime(i, '%Y-%m-%d')
-    epoch = date.timestamp()
+    epoch = int(date.timestamp())
     es.add_price(epoch, data['bpi'][i])
+    print("adding %d/%d" % (current, total))
+    current = current + 1

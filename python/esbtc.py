@@ -155,7 +155,8 @@ class ElasticsearchBTC:
 
             my_id = "%s-%s" % (data['tx'], data['n'])
 
-            self.es.update(id=my_id, index="btc-opreturn", doc_type='doc', body={'doc' :data, 'doc_as_upsert': True}, request_timeout=30)
+            #self.es.update(id=my_id, index="btc-opreturn", doc_type='doc', body={'doc' :data, 'doc_as_upsert': True}, request_timeout=30)
+            self.es.update(id=my_id, index="btc-opreturn", body={'doc' :data, 'doc_as_upsert': True}, request_timeout=30)
 
     def add_block(self, block, force_add=False):
         "Add a block. Do nothing if the block already exists"
@@ -164,30 +165,35 @@ class ElasticsearchBTC:
 
         exists = False
         try:
-            self.es.get(index=the_index, doc_type="doc", id=block['hash'])
+            #self.es.get(index=the_index, doc_type="doc", id=block['hash'])
+            self.es.get(index=the_index, id=block['hash'])
             exists = True
         except NotFoundError:
             # We need to add this block
             exists = False
 
         if exists is False or force_add is True:
-            self.es.update(id=block['hash'], index=the_index, doc_type='doc', body={'doc' :block, 'doc_as_upsert': True}, request_timeout=30)
+            #self.es.update(id=block['hash'], index=the_index, doc_type='doc', body={'doc' :block, 'doc_as_upsert': True}, request_timeout=30)
+            self.es.update(id=block['hash'], index=the_index, body={'doc' :block, 'doc_as_upsert': True}, request_timeout=30)
 
     def add_transaction(self, tx):
         "Add a transaction. Do nothing if the block already exists"
 
         the_index = "btc-transactions-%d" % (tx['height'] / 100000)
         try:
-            self.es.get(index=the_index, doc_type="doc", id=tx['hash'])
+            #self.es.get(index=the_index, doc_type="doc", id=tx['hash'])
+            self.es.get(index=the_index, id=tx['hash'])
             # It exists if this returns, let's skip it
         except NotFoundError:
             # We need to add this transaction
-            self.es.update(id=tx['hash'], index=the_index, doc_type='doc', body={'doc' :tx, 'doc_as_upsert': True}, request_timeout=30)
+            #self.es.update(id=tx['hash'], index=the_index, doc_type='doc', body={'doc' :tx, 'doc_as_upsert': True}, request_timeout=30)
+            self.es.update(id=tx['hash'], index=the_index, body={'doc' :tx, 'doc_as_upsert': True}, request_timeout=30)
 
     def add_price(self, date, price):
         "Add the price for a given timestamp"
         price_data = { 'time': date, 'price': price }
-        self.es.update(id=date, index="btc-price-date", doc_type='doc', body={'doc' :price_data, 'doc_as_upsert': True}, request_timeout=30)
+        #self.es.update(id=date, index="btc-price-date", doc_type='_doc', body={'doc' :price_data, 'doc_as_upsert': True}, request_timeout=30)
+        self.es.update(id=date, index="btc-price-date", body={'doc' :price_data, 'doc_as_upsert': True}, request_timeout=30)
 
     def add_opreturn_files(self, data):
         errors = []
@@ -319,7 +325,8 @@ class Transactions:
         self.current = -1
 
     def add_transaction(self, tx):
-        temp = {    '_type': 'doc',
+        temp = {
+                    #'_type': 'doc',
                     '_op_type': 'update',
                     '_index': "btc-transactions-%d" % (tx['height'] / 100000),
                     '_id': tx['hash'],
