@@ -24,5 +24,5 @@ for i in data['bpi']:
     date = datetime.strptime(i, '%Y-%m-%d')
     epoch = int(date.timestamp())
     es.add_price(epoch, data['bpi'][i])
-    print("adding %d/%d" % (current, total))
+    print("adding %d/%d" % (current+1, total))
     current = current + 1

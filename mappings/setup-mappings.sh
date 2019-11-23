@@ -1,5 +1,8 @@
 #!/bin/sh
 
+
+curl -XPUT "$ESURL/_ilm/policy/btc_policy" -H 'Content-Type: application/json' -d @ilm.json
+
 curl -XPUT "$ESURL/_template/btc-blocks-template" -H 'Content-Type: application/json' -d @mapping-blocks.json
 curl -XPUT "$ESURL/_template/btc-transactions-template" -H 'Content-Type: application/json' -d @mapping-transactions.json
 curl -XPUT "$ESURL/_template/btc-price-template" -H 'Content-Type: application/json' -d @mapping-price-time.json

@@ -1,7 +1,9 @@
 {
   "index_patterns" : ["btc-blocks-*"],
   "settings" : {
-        "number_of_shards" : 3
+        "number_of_shards" : 1,
+        "index.lifecycle.name": "btc_policy",
+        "index.lifecycle.rollover_alias": "btc-blocks"
   },
     "mappings": {
         "properties": {

@@ -1,7 +1,9 @@
 {
     "index_patterns" : ["btc-transactions-*", "transactions"],
   "settings" : {
-        "number_of_shards" : 5
+        "number_of_shards" : 1,
+        "index.lifecycle.name": "btc_policy",
+        "index.lifecycle.rollover_alias": "btc-transactions"
     },
       "mappings": {
         "properties": {

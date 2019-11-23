@@ -10,88 +10,71 @@ from esbtc import OP_RETURN
 
 es = ElasticsearchBTC()
 txs = OP_RETURN(es)
+btcdaemon = DaemonBTC("http://test:test@127.0.0.1:8332")
 
 # We have to break this up into a bunch of pieces. There's too much data to
 # scroll it at once (things fall over)
 
-# Skip to the 200K blocks, there are no OP_RETURN transactions before then
-for index in range(2, 6):
-    for height in range(0, 100000, 100):
+indices = sorted(es.get_transactions_indices())
 
-        idx = "btc-transactions-%d" % index
-        low = index * 100000 + height
-        high = index * 100000 + height + 100
+if len(sys.argv) > 1:
+    indices = indices[int(sys.argv[1]):]
 
-        print(idx)
-        print(low)
-        print(high)
-        for i in es.get_nulldata_transactions(idx, [low, high]):
+all_txs = 0
+total_loop = 0
 
-            # This thing loves to timeout. Rebuilding it every time
-            # isn't ideal, we need to fix it someday
-            btcdaemon = DaemonBTC("http://test:test@127.0.0.1:8332")
-            bttx = btcdaemon.get_transaction(i['_source']['txid'])
+print("Indices to scan")
+for one_index in indices:
+    current_count = es.count_nulldata_transactions(one_index)['count']
+    all_txs = all_txs + current_count
+    print("{:s} {:d} documents".format(one_index, current_count))
+print("---------------")
 
-            #for tx in i['_source']['vout']:
-            for tx in bttx['vout']:
-                tx_hash = bttx['hash']
-                tx_id = bttx['txid']
+for one_index in indices:
 
-                #try:
-                #    tx_id = i['_source']['txid']
-                #except KeyError:
-                #    tx_id = tx_hash
-                #    print("KeyError: txid missing %s" % tx_hash)
-                if tx['scriptPubKey']['type'] == "nulldata":
-                    asm = tx['scriptPubKey']['asm']
-                    if not asm.startswith('OP_RETURN '):
-                        next
-                    # Yank the OP_RETURN
-                    asm = asm[10:]
+    idx = one_index
+    total_tx = es.count_nulldata_transactions(idx)['count']
 
-                    # Just skip these
-                    if asm.startswith('OP_RESERVED'):
-                        next
-                    # Remove spaces (sometimes it happens)
-                    asm = asm.replace(' ', '')
-                    if len(asm) % 2:
-                        asm = asm + '0'
-                    try:
-                        output = bytes.fromhex(asm)
-                    except ValueError:
-                        print("ValueError %s:%s" % (tx_hash, asm))
-                    size = len(output)
-                    tx_num = tx['n']
-                    height = i['_source']['height']
-                    #fh = open('/tmp/btc-out', 'wb')
-                    #fh.write(output)
-                    #size = fh.tell()
-                    #fh.close()
-                    #filetype = subprocess.check_output(['file', '-b', '/tmp/btc-out'])
-                    #filetype = filetype.rstrip()
+    loop_count = 0
 
-                    doc = {}
+    for i in es.get_nulldata_transactions(idx):
+        loop_count = loop_count + 1
+        total_loop = total_loop + 1
 
-                    if 'vin' in bttx:
-                        doc['vin'] = bttx['vin']
-                        # We don't need this data, it just takes up space
-                        for vin in doc['vin']:
-                            if 'scriptSig' in vin:
-                                if 'asm' in vin['scriptSig']:
-                                    del(vin['scriptSig']['asm'])
-                                if 'hex' in vin['scriptSig']:
-                                    del(vin['scriptSig']['hex'])
+        percent = (loop_count/total_tx) * 100
+
+        from_len = len(str(all_txs))
+        allstr = "{num:{fill}{width}}".format(num=total_loop, fill=' ', width=from_len)
+
+        from_len = len(str(total_tx))
+        loopstr = "{num:{fill}{width}}".format(num=loop_count, fill=' ', width=from_len)
+
+        # By moving the cursor here we preserve the last printed line in
+        # case of an exception
+        print('', end='\r')
+        print("{:s} : {:s}/{:d} {:05.3f}% - All: {:s}/{:d}".format(idx, loopstr, total_tx, percent, allstr, all_txs), end='')
 
 
+        bttx = i['_source']
 
-                    doc['tx'] = tx_hash
-                    doc['txid'] = tx_id
-                    doc['n'] = tx_num
-                    #doc['type'] = filetype
-                    doc['size'] = size
-                    doc['height'] = height
+        for tx in bttx['vout']:
+            tx_hash = bttx['hash']
+            tx_id = bttx['txid']
 
-                    txs.add_transaction(doc)
+            if tx['scriptPubKey']['type'] == "nulldata":
+
+                tx_num = tx['n']
+                height = i['_source']['height']
+
+
+                doc = {}
+
+                doc['tx'] = tx_hash
+                doc['txid'] = tx_id
+                doc['n'] = tx_num
+                doc['height'] = height
+
+                txs.add_transaction(doc)
 
 # Write whatever is left
 es.add_bulk_tx(txs)

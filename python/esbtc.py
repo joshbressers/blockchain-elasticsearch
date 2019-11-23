@@ -2,9 +2,11 @@
 from elasticsearch import Elasticsearch
 from elasticsearch.exceptions import NotFoundError
 from elasticsearch.exceptions import ConnectionTimeout
+from elasticsearch.exceptions import TransportError
 import elasticsearch
 import elasticsearch.helpers
 from bitcoinrpc.authproxy import AuthServiceProxy, JSONRPCException
+
 
 import os
 
@@ -17,8 +19,11 @@ class ElasticsearchBTC:
             self.url = os.environ['ESURL']
         else:
             self.url = url
-        self.es = Elasticsearch([self.url], http_compress = True)
+        self.es = Elasticsearch([self.url], http_compress = True, timeout=60)
         self.size = None
+
+    def get_transactions_indices(self):
+        return self.es.indices.get('btc-transactions-*').keys()
 
     def get_block(self, block=None, height=None):
         result = {}
@@ -98,11 +103,20 @@ class ElasticsearchBTC:
 
             return elasticsearch.helpers.scan(self.es, index="btc-transactions-*", query=query, scroll='1m')
 
-    def get_nulldata_transactions(self, index, height_range):
+    def count_nulldata_transactions(self, index):
+        result = self.es.count(index=index,
+                               body={
+                                      "query": {
+                                        "term": { "vout.scriptPubKey.type": "nulldata" }
+                                      }
+                                    }
+                              )
+        return result
+
+
+    def get_nulldata_transactions(self, index):
             # This is a mess. Apologies if you're looking at this
 
-            l = height_range[0]
-            h = height_range[1]
             query = { "_source": ["hash",
                                   "height",
                                   "txid",
@@ -114,8 +128,7 @@ class ElasticsearchBTC:
                       "query" : {
                         "bool": {
                           "must": [
-                            {"term": { "vout.scriptPubKey.type": "nulldata" }},
-                            {"range" : { "height" : { "gte" : l, "lte" :  h}}}
+                            {"term": { "vout.scriptPubKey.type": "nulldata" }}
                           ]
                         }
                       }
@@ -161,12 +174,13 @@ class ElasticsearchBTC:
     def add_block(self, block, force_add=False):
         "Add a block. Do nothing if the block already exists"
 
-        the_index = "btc-blocks-%d" % (block['height'] / 100000)
+        read_index = "btc-blocks-*"
+        the_index = "btc-blocks"
 
         exists = False
         try:
             #self.es.get(index=the_index, doc_type="doc", id=block['hash'])
-            self.es.get(index=the_index, id=block['hash'])
+            self.es.get(index=read_index, id=block['hash'])
             exists = True
         except NotFoundError:
             # We need to add this block
@@ -179,7 +193,7 @@ class ElasticsearchBTC:
     def add_transaction(self, tx):
         "Add a transaction. Do nothing if the block already exists"
 
-        the_index = "btc-transactions-%d" % (tx['height'] / 100000)
+        the_index = "btc-transactions"
         try:
             #self.es.get(index=the_index, doc_type="doc", id=tx['hash'])
             self.es.get(index=the_index, id=tx['hash'])
@@ -229,7 +243,7 @@ class ElasticsearchBTC:
 class DaemonBTC:
 
     def __init__(self, url):
-        self.rpc = AuthServiceProxy(url)
+        self.rpc = AuthServiceProxy(url, timeout=90)
 
         self.height = self.rpc.getblockcount()
 
@@ -343,7 +357,7 @@ class Transactions:
         temp = {
                     #'_type': 'doc',
                     '_op_type': 'update',
-                    '_index': "btc-transactions-%d" % (tx['height'] / 100000),
+                    '_index': "btc-transactions",
                     '_id': tx['hash'],
                     'doc_as_upsert': True,
                     'doc': tx
@@ -386,8 +400,11 @@ class OP_RETURN:
 
         self.transactions.append(temp)
 
-        if len(self.transactions) > 1000:
-            self.es_handle.add_bulk_tx(self)
+        if len(self.transactions) > 200:
+            try:
+                self.es_handle.add_bulk_tx(self)
+            except TransportError:
+                import pdb; pdb.set_trace
             self.transactions = []
             self.current = -1
 

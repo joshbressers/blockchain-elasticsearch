@@ -43,8 +43,9 @@ if len(args) > 1:
 
 
 for i in range(size, height + 1):
+        #print("block %d/%d"%(block['height'], height))
+        print("block %d/%d"%(i, height))
         block = btcdaemon.get_block(i)
-        print("block %d/%d"%(block['height'], height))
 
         if transactions is True:
             # Add transactions
