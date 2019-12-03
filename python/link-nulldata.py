@@ -26,6 +26,8 @@ def get_ids(txs, the_id):
 
 es = ElasticsearchBTC()
 
+lower = None
+higher = None
 if len(sys.argv) > 2:
     lower = int(sys.argv[1])
     higher = int(sys.argv[2])
@@ -61,6 +63,8 @@ for i in txs:
 
 total_files = len(parents)
 current_file = 0
+btcdaemon = DaemonBTC("http://test:test@127.0.0.1:8332")
+tx_data = []
 for p in parents:
 
     print("%d/%d" % (current_file, total_files))
@@ -81,9 +85,9 @@ for p in parents:
     # waiting. This is an insane hack, but meh
     for attempt in range(10):
         try:
-            btcdaemon = DaemonBTC("http://test:test@127.0.0.1:8332")
             tx_data = btcdaemon.get_transactions(needed_ids)
         except:
+            btcdaemon = DaemonBTC("http://test:test@127.0.0.1:8332", timeout=30)
             next
         else:
             break
