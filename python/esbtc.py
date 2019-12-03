@@ -242,10 +242,8 @@ class ElasticsearchBTC:
 
 class DaemonBTC:
 
-    def __init__(self, url):
-        self.rpc = AuthServiceProxy(url, timeout=90)
-
-        self.height = self.rpc.getblockcount()
+    def __init__(self, url, timeout=90):
+        self.rpc = AuthServiceProxy(url, timeout=timeout)
 
 
     def get_block(self, i):
