@@ -68,6 +68,8 @@ for one_index in indices:
 
 
                 doc = {}
+                if 'vin' in bttx:
+                    doc['vin'] = bttx['vin']
 
                 doc['tx'] = tx_hash
                 doc['txid'] = tx_id
