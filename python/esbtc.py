@@ -152,7 +152,43 @@ class ElasticsearchBTC:
             if bottom is not None and top is not None:
                 query['query'] = {"range" : { "height" : { "gte" : bottom, "lte" :  top}}}
 
-            return elasticsearch.helpers.scan(self.es, index="btc-opreturn", query=query, scroll='5m')
+            return elasticsearch.helpers.scan(self.es, index="btc-opreturn", query=query, size=100, scroll='1m')
+
+    def get_opreturn_tx(self, tx):
+
+        result = self.es.search(index="btc-opreturn", body={"query": {
+"match": { "txid": { "query": tx }}}})
+
+        # We're just going to assume neither of these can return
+        # multiple things
+        if len(result['hits']['hits']) == 0:
+            return None
+        else:
+            return result['hits']['hits']
+
+    def set_opreturn_tx_parent(self, tx):
+
+        my_id = tx['_id']
+        data = tx['_source']
+        data['is_parent'] = True
+
+        self.es.update(id=my_id, index="btc-opreturn", doc_type='doc', body={'doc' :data}, request_timeout=10)
+
+    def add_opreturn_tx_child(self, parent_txid, child_txid):
+
+        tx = self.get_opreturn_tx(parent_txid)
+
+        if tx is None:
+            return None
+
+        my_id = tx[0]['_id']
+        data = tx[0]['_source']
+        if 'children' in data and child_txid not in data['children']:
+            data['children'].append(child_txid)
+        else:
+            data['children'] = [child_txid]
+
+        self.es.update(id=my_id, index="btc-opreturn", doc_type='doc', body={'doc' :data}, request_timeout=10)
 
     def update_opreturns(self, the_iter):
 
