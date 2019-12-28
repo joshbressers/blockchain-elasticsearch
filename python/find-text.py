@@ -109,8 +109,7 @@ def main():
                         "block": f,
                         "data": output_data
                        }
-            temp = {    '_type': 'doc',
-                        '_op_type': 'update',
+            temp = {    '_op_type': 'update',
                         '_index': "btc-opreturn-file",
                         '_id': tx_id,
                         'doc_as_upsert': True,
