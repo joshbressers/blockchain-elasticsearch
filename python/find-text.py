@@ -111,7 +111,7 @@ def main():
                        }
             temp = {    '_op_type': 'update',
                         '_index': "btc-opreturn-file",
-                        '_id': tx_id,
+                        '_id': "%s-%s" % (tx_id, f),
                         'doc_as_upsert': True,
                         'doc': the_data
                     }
